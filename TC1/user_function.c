@@ -112,6 +112,31 @@ void user_function_cmd_received( char *mqtt_topic , char *mqtt_data )
             sprintf( sys_config->micoSystemConfig.name, p_setting_name->valuestring );
         }
 
+        //设置 SSID
+        cJSON *p_ssid = cJSON_GetObjectItem( p_setting, "ssid" );
+        if ( p_ssid && cJSON_IsString( p_ssid ) )
+        {
+            cJSON *p_user_key = cJSON_GetObjectItem( p_setting, "user_key" );
+            if ( p_user_key && cJSON_IsString( p_user_key ) )
+            {
+                update_user_config_flag = true;
+                //sprintf( user_config->ssid, p_mqtt_ip->valuestring );
+                char *value_ssid = p_ssid->valuestring;
+                char *value_pass = p_user_key->valuestring;
+                mico_Context_t *context = mico_system_context_get( );
+                strncpy(context->micoSystemConfig.ssid, value_ssid, maxSsidLen);
+                strncpy(context->micoSystemConfig.key, value_pass, maxKeyLen);
+                strncpy(context->micoSystemConfig.user_key, value_pass, maxKeyLen);
+                context->micoSystemConfig.keyLength = strlen(context->micoSystemConfig.key);
+                context->micoSystemConfig.user_keyLength = strlen(context->micoSystemConfig.key);
+
+                context->micoSystemConfig.channel = 0;
+                memset(context->micoSystemConfig.bssid, 0x0, 6);
+                context->micoSystemConfig.security = SECURITY_TYPE_AUTO;
+                context->micoSystemConfig.dhcpEnable = true;
+            }
+        }
+
         //设置mqtt ip
         cJSON *p_mqtt_ip = cJSON_GetObjectItem( p_setting, "mqtt_uri" );
         if ( p_mqtt_ip && cJSON_IsString( p_mqtt_ip ) )
