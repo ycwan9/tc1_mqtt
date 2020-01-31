@@ -30,6 +30,9 @@
 #define Relay_5     MICO_GPIO_18
 #define Relay_NUM   SLOT_NUM
 
+#ifdef EXTERNAL_USER_CONFIG
+#include "user_config.h"
+#else
 //自定义
 #define ZTC_NAME "tc1_%s"                       //设备名称模板，默认生成的设备名称为tc1_{{MAC地址}}，PS：如修改要保留%s，将填充MAC地址
 #define CONFIG_SSID "ssid"                      //WiFi名称
@@ -42,6 +45,7 @@
 #define MQTT_CLIENT_SUB_TOPIC   "cmnd/%s"       //命令控制接收topic模板，%s取ZTC_NAME（默认tc1_{{MAC地址}}），PS：请勿修改此处，可修改ZTC_NAME
 #define MQTT_CLIENT_PUB_TOPIC   "stat/%s"       //状态信息topic模板，%s取ZTC_NAME（默认tc1_{{MAC地址}}），PS：请勿修改此处，可修改ZTC_NAME
 #define USER_CONFIG_VERSION 2                   //OTA注意修改为与上次固件不同，触发重载wifi、mqtt等配置信息
+#endif
 
 //用户保存参数结构体
 typedef struct
