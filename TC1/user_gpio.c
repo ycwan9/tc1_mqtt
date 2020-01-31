@@ -81,7 +81,6 @@ static void key_long_10s_press( void )
 //    }
 //
     appRestoreDefault_callback( user_config, sizeof(user_config_t) );
-    sys_config->micoSystemConfig.ssid[0] = 0;
     mico_system_context_update( mico_system_context_get( ) );
 }
 static void key_short_press( void )
