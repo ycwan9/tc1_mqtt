@@ -120,20 +120,18 @@ void user_function_cmd_received( char *mqtt_topic , char *mqtt_data )
             if ( p_user_key && cJSON_IsString( p_user_key ) )
             {
                 update_user_config_flag = true;
-                //sprintf( user_config->ssid, p_mqtt_ip->valuestring );
                 char *value_ssid = p_ssid->valuestring;
                 char *value_pass = p_user_key->valuestring;
-                mico_Context_t *context = mico_system_context_get( );
-                strncpy(context->micoSystemConfig.ssid, value_ssid, maxSsidLen);
-                strncpy(context->micoSystemConfig.key, value_pass, maxKeyLen);
-                strncpy(context->micoSystemConfig.user_key, value_pass, maxKeyLen);
-                context->micoSystemConfig.keyLength = strlen(context->micoSystemConfig.key);
-                context->micoSystemConfig.user_keyLength = strlen(context->micoSystemConfig.key);
+                strncpy(sys_config->micoSystemConfig.ssid, value_ssid, maxSsidLen);
+                strncpy(sys_config->micoSystemConfig.key, value_pass, maxKeyLen);
+                strncpy(sys_config->micoSystemConfig.user_key, value_pass, maxKeyLen);
+                sys_config->micoSystemConfig.keyLength = strlen(sys_config->micoSystemConfig.key);
+                sys_config->micoSystemConfig.user_keyLength = strlen(sys_config->micoSystemConfig.key);
 
-                context->micoSystemConfig.channel = 0;
-                memset(context->micoSystemConfig.bssid, 0x0, 6);
-                context->micoSystemConfig.security = SECURITY_TYPE_AUTO;
-                context->micoSystemConfig.dhcpEnable = true;
+                sys_config->micoSystemConfig.channel = 0;
+                memset(sys_config->micoSystemConfig.bssid, 0x0, 6);
+                sys_config->micoSystemConfig.security = SECURITY_TYPE_AUTO;
+                sys_config->micoSystemConfig.dhcpEnable = true;
             }
         }
 
@@ -183,6 +181,8 @@ void user_function_cmd_received( char *mqtt_topic , char *mqtt_data )
         if ( p_mqtt_user ) cJSON_AddStringToObject( json_setting_send, "mqtt_user", user_config->mqtt_user );
         //返回mqtt password
         if ( p_mqtt_password ) cJSON_AddStringToObject( json_setting_send, "mqtt_password", user_config->mqtt_password );
+        //返回 SSID
+        if (p_ssid) cJSON_AddStringToObject(json_setting_send, "ssid", sys_config->micoSystemConfig.ssid);
 
         cJSON_AddItemToObject( json_send, "setting", json_setting_send );
     }
