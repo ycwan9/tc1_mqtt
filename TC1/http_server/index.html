@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<style>
+form#user_setting {
+	display: table;
+}
+
+form#user_setting > div {
+	display: table-row;
+}
+
+form#user_setting label, form#user_setting input {
+	display: table-cell;
+	margin-bottom: 10px;
+}
+	</style>
+	<title>TC1 Settings</title>
+</head>
+<body>
+	<form id="user_setting">
+		<div><label>Name          </label><input type="text" name="name"></div>
+		<div><label>SSID          </label><input type="text" name="ssid"></div>
+		<div><label>Password      </label><input type="text" name="user_key"></div>
+		<div><label>MQTT server   </label><input type="text" name="mqtt_uri"></div>
+		<div><label>MQTT port     </label><input type="number" name="mqtt_port"></div>
+		<div><label>MQTT username </label><input type="text" name="mqtt_user"></div>
+		<div><label>MQTT password </label><input type="text" name="mqtt_password"></div>
+		<div><label>OTA URL       </label><input type="text" name="ota_url"></div>
+		<div><button type="button" onclick="submit_setting()">Submit</button></div>
+	</form>
+
+	<script type="text/javascript">
+		function submit_setting() {
+			var set_form = document.getElementById("user_setting");
+			var settings = {};
+			for (var i of set_form.elements) {
+				if (i.type == "text" && i.value.length > 0) {
+					Reflect.set(settings, i.name, i.value);
+				}
+			}
+			if (set_form.elements.mqtt_port.value.length > 0) {
+				settings.mqtt_port = parseInt(set_form.elements.mqtt_port.value);
+			}
+			var user_cmd = JSON.stringify({setting: settings})
+			console.log(user_cmd)
+			var xml_http = new XMLHttpRequest();
+			xml_http.open("POST", "/usercmd", true);
+			xml_http.setRequestHeader("Content-type", "application/json");
+			xml_http.onreadystatechange = function () {
+				if (xml_http.readyState == 4) {
+					if (xml_http.status == 200) {
+						alert(xml_http.responseText);
+					}
+					else {
+						alert("Ajax error: " + xml_http.status);
+					}
+				}
+			};
+			xml_http.send(user_cmd);
+		}
+	</script>
+</body>
+</html>

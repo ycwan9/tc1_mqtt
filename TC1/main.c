@@ -155,7 +155,9 @@ int application_start( void )
     user_power_init();
 
     /* start http server thread */
-//      app_httpd_start();
+#ifdef USE_HTTPD
+    app_httpd_start();
+#endif
     while ( 1 )
     {
         main_num++;
