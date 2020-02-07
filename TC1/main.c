@@ -13,9 +13,9 @@
 
 
 char first_sntp = 0;    //sntp校时成功标志位
+char strMac[15] = { 0 };
 uint32_t sntp_count=0;
 uint32_t run_time=0;
-char strMac[16] = { 0 };
 uint32_t power=0;
 
 system_config_t * sys_config;
@@ -86,8 +86,13 @@ int application_start( void )
     MicoGpioInitialize( (mico_gpio_t) Button, INPUT_PULL_UP );
     if ( !MicoGpioInputGet( Button ) )
     {   //开机时按钮状态
+#ifdef AP_BOOTSTRAP
+        os_log("starting Soft-AP");
+        wifi_status = WIFI_STATE_FAIL;
+#else
         os_log( "wifi_start_easylink" );
         wifi_status = WIFI_STATE_NOEASYLINK;  //wifi_init中启动easylink
+#endif
     }
 
     MicoGpioInitialize( (mico_gpio_t) Led, OUTPUT_PUSH_PULL );
@@ -108,12 +113,13 @@ int application_start( void )
     wifi_init( );
     mico_thread_msleep(1000);
 
-    IPStatusTypedef para;
-    micoWlanGetIPStatus( &para, Station );
-    os_log( "micoWlanGetIPStatus:%d", micoWlanGetIPStatus( &para, Station ));   //mac读出来全部是0??!!!
-    strcpy( strMac, para.mac );
-    os_log( "result:%s",strMac );
-    os_log( "result:%s",para.mac );
+    // get MAC & set hostname if needed
+    uint8_t mac[8];
+    mico_wlan_get_mac_address(mac);
+    for (int i = 0; i < 6; i++) {
+        sprintf(strMac + i*2, "%02X", mac[i]);
+    }
+    os_log("MAC: %s", strMac);
 
     if ( sys_config->micoSystemConfig.name[0] == 1 )
     {

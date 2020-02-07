@@ -65,7 +65,7 @@ extern char first_sntp;
 extern uint32_t sntp_count;
 
 extern uint32_t run_time;
-extern char strMac[16];
+extern char strMac[15];
 extern uint32_t power;
 extern system_config_t * sys_config;
 extern user_config_t * user_config;

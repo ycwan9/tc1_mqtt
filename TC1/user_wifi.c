@@ -7,6 +7,8 @@
 #include "user_function.h"
 #define os_log(format, ...)  custom_log("WIFI", format, ##__VA_ARGS__)
 
+#define MAX_AP_NAME_LEN 16
+
 char wifi_status = WIFI_STATE_NOCONNECT;
 
 mico_timer_t wifi_led_timer;
@@ -28,6 +30,30 @@ static void wifi_connect_sys_config( void )
     } else
         wifi_status = WIFI_STATE_FAIL;
 }
+
+#ifdef AP_BOOTSTRAP
+static void ap_init(void)
+{
+    char ap_name[MAX_AP_NAME_LEN];
+    snprintf(ap_name, MAX_AP_NAME_LEN, BOOTSTRAP_AP_NAME, sys_config->micoSystemConfig.name);
+    os_log("ApInit ap_name[%s]", ap_name);
+
+    network_InitTypeDef_st wNetConfig;
+    memset(&wNetConfig, 0x0, sizeof(network_InitTypeDef_st));
+    strcpy((char *)wNetConfig.wifi_ssid, ap_name);
+    strcpy((char *)wNetConfig.wifi_key, BOOTSTRAP_AP_KEY);
+    wNetConfig.wifi_mode = Soft_AP;
+    wNetConfig.dhcpMode = DHCP_Server;
+    wNetConfig.wifi_retry_interval = 100;
+    strcpy((char *)wNetConfig.local_ip_addr, BOOTSTRAP_LOCAL_IP);
+    strcpy((char *)wNetConfig.net_mask, BOOTSTRAP_NETMASK);
+    strcpy((char *)wNetConfig.dnsServer_ip_addr, BOOTSTRAP_DNS_SERVER);
+    micoWlanStart(&wNetConfig);
+
+    os_log("ApInit ssid[%s] key[%s]", wNetConfig.wifi_ssid, wNetConfig.wifi_key);
+    wifi_status = WIFI_STATE_CONNECTING;
+}
+#else
 void wifi_start_easylink( )
 {
     wifi_status = WIFI_STATE_EASYLINK;
@@ -58,6 +84,7 @@ void wifi_easylink_completed_handle( network_InitTypeDef_st *nwkpara, void * arg
     os_log("EasyLink stop");
     micoWlanStopEasyLink( );
 }
+#endif
 
 //wifi已连接获取到IP地址 回调
 static void wifi_get_ip_callback( IPStatusTypedef *pnet, void * arg )
@@ -89,6 +116,9 @@ static void wifi_led_timer_callback( void* arg )
             os_log("wifi connect fail");
             user_led_set( 0 );
             mico_rtos_stop_timer( &wifi_led_timer );
+#ifdef AP_BOOTSTRAP
+            ap_init();
+#endif
             break;
         case WIFI_STATE_NOCONNECT:
             wifi_connect_sys_config( );
@@ -102,7 +132,9 @@ static void wifi_led_timer_callback( void* arg )
         }
             break;
         case WIFI_STATE_NOEASYLINK:
+#ifndef AP_BOOTSTRAP
             wifi_start_easylink( );
+#endif
             break;
         case WIFI_STATE_EASYLINK:
             user_led_set( 1 );
@@ -133,8 +165,10 @@ void wifi_init( void )
 
     //wifi状态下led闪烁定时器初始化
     mico_rtos_init_timer( &wifi_led_timer, 1000, (void *) wifi_led_timer_callback, NULL );
+#ifndef AP_BOOTSTRAP
     //easylink 完成回调
     mico_system_notify_register( mico_notify_EASYLINK_WPS_COMPLETED, (void *) wifi_easylink_completed_handle, NULL );
+#endif
     //wifi已连接获取到IP地址 回调
     mico_system_notify_register( mico_notify_DHCP_COMPLETED, (void *) wifi_get_ip_callback, NULL );
     //wifi连接状态改变回调
@@ -142,6 +176,4 @@ void wifi_init( void )
 
     //启动定时器开始进行wifi连接
     if ( !mico_rtos_is_timer_running( &wifi_led_timer ) ) mico_rtos_start_timer( &wifi_led_timer );
-
 }
-
