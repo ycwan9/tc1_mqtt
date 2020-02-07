@@ -7,6 +7,7 @@
 #include "user_mqtt_client.h"
 #include "user_function.h"
 #include "http_server/app_httpd.h"
+#include "user_cli.h"
 
 #define os_log(format, ...)  custom_log("TC1", format, ##__VA_ARGS__)
 
@@ -153,6 +154,8 @@ int application_start( void )
     require_noerr( err, exit );
     sntp_init();
     user_power_init();
+
+    user_cli_init();
 
     /* start http server thread */
 #ifdef USE_HTTPD

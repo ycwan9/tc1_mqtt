@@ -34,6 +34,7 @@ $(NAME)_SOURCES := main.c\
 				   user_ota.c\
 				   user_power.c\
 				   user_function.c\
+				   user_cli.c\
 				   http_server/app_httpd.c \
 				   http_server/web_data.c
 				   
