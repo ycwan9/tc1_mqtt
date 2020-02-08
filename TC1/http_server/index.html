@@ -20,9 +20,10 @@ form#user_setting label, form#user_setting input {
 </head>
 <body>
 	<form id="user_setting">
+		<div><label>Password      </label><input type="password" name="password"></div>
 		<div><label>Name          </label><input type="text" name="name"></div>
 		<div><label>SSID          </label><input type="text" name="ssid"></div>
-		<div><label>Password      </label><input type="text" name="user_key"></div>
+		<div><label>WiFi Password </label><input type="text" name="user_key"></div>
 		<div><label>MQTT server   </label><input type="text" name="mqtt_uri"></div>
 		<div><label>MQTT port     </label><input type="number" name="mqtt_port"></div>
 		<div><label>MQTT username </label><input type="text" name="mqtt_user"></div>
@@ -44,10 +45,13 @@ form#user_setting label, form#user_setting input {
 				settings.mqtt_port = parseInt(set_form.elements.mqtt_port.value);
 			}
 			var user_cmd = JSON.stringify({setting: settings})
+			if (set_form.elements.password.value.length > 0) {
+				user_cmd = set_form.elements.password.value + "\n" + user_cmd
+			}
 			console.log(user_cmd)
 			var xml_http = new XMLHttpRequest();
 			xml_http.open("POST", "/usercmd", true);
-			xml_http.setRequestHeader("Content-type", "application/json");
+			xml_http.setRequestHeader("Content-type", "text/plain");
 			xml_http.onreadystatechange = function () {
 				if (xml_http.readyState == 4) {
 					if (xml_http.status == 200) {

@@ -43,6 +43,11 @@
 
 #define MAX_HTTP_DATA_SIZE 1024
 
+#ifndef HTTPD_PASSWORD
+#define HTTPD_PASSWORD NULL
+#endif
+#define HTTPD_INCORRECT_PASS "incorrect password"
+
 #define app_httpd_log(M, ...) custom_log("apphttpd", M, ##__VA_ARGS__)
 
 #define HTTPD_HDR_DEFORT (HTTPD_HDR_ADD_SERVER|HTTPD_HDR_ADD_CONN_CLOSE|HTTPD_HDR_ADD_PRAGMA_NO_CACHE)
@@ -64,6 +69,23 @@ exit:
   return err; 
 }
 
+// ugly and simple authentication, return NULL if password incorrect
+static inline char *check_password(char *post_data) {
+  if (HTTPD_PASSWORD == NULL) {
+    return post_data;
+  }
+  char *password_sep = strchr(post_data, '\n');
+  if (password_sep == NULL) {
+    return NULL;
+  }
+  *password_sep = '\0';
+  if (strcmp(post_data, HTTPD_PASSWORD)) {
+    return NULL;
+  }
+  return password_sep + 1;
+}
+
+
 static int web_user_cmd(httpd_request_t *req)
 {
   OSStatus err = kNoErr;
@@ -74,9 +96,15 @@ static int web_user_cmd(httpd_request_t *req)
   require_noerr(err, exit);
   app_httpd_log("got cmd: %s", cmd);
 
-  user_function_cmd_received("", cmd);
-
-  err = httpd_send_response(req, HTTP_RES_200, "OK", 2, HTTP_CONTENT_HTML_STR);
+  char *cmd_pos = check_password(cmd);
+  if (cmd_pos == NULL) {
+    // prevent bruteforce
+    mico_rtos_thread_sleep(2);
+    err = httpd_send_response(req, HTTP_RES_200, HTTPD_INCORRECT_PASS, sizeof(HTTPD_INCORRECT_PASS)-1, HTTP_CONTENT_HTML_STR);
+  } else {
+    user_function_cmd_received("", cmd_pos);
+    err = httpd_send_response(req, HTTP_RES_200, HTTPD_TEXT_SUCCESS, sizeof(HTTPD_TEXT_SUCCESS)-1, HTTP_CONTENT_HTML_STR);
+  }
 exit:
   if (cmd) free(cmd);
   return err;
