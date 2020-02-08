@@ -159,7 +159,9 @@ int application_start( void )
 
     /* start http server thread */
 #ifdef USE_HTTPD
+#ifdef HTTPD_AP_ONLY
     app_httpd_start();
+#endif
 #endif
     while ( 1 )
     {

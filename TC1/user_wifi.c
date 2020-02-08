@@ -7,6 +7,10 @@
 #include "user_function.h"
 #define os_log(format, ...)  custom_log("WIFI", format, ##__VA_ARGS__)
 
+#ifdef HTTPD_AP_ONLY
+#include "http_server/app_httpd.h"
+#endif
+
 #define MAX_AP_NAME_LEN 16
 
 char wifi_status = WIFI_STATE_NOCONNECT;
@@ -52,6 +56,10 @@ static void ap_init(void)
 
     os_log("ApInit ssid[%s] key[%s]", wNetConfig.wifi_ssid, wNetConfig.wifi_key);
     wifi_status = WIFI_STATE_CONNECTED;
+
+#ifdef HTTPD_AP_ONLY
+	app_httpd_start();
+#endif
 }
 #else
 void wifi_start_easylink( )
