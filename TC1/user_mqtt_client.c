@@ -28,6 +28,7 @@
 #include "user_gpio.h"
 #include "user_mqtt_client.h"
 #include "cJSON/cJSON.h"
+#include "user_wifi.h"
 
 //#define MQTT_CLIENT_SSL_ENABLE  // ssl
 
@@ -286,15 +287,13 @@ void mqtt_client_thread( mico_thread_arg_t arg )
 #else
     ssl_settings.ssl_enable = false;
 #endif
-    LinkStatusTypeDef LinkStatus;
     while ( 1 )
     {
         isconnect = false;
         mico_rtos_thread_sleep( 3 );
         if ( MQTT_SERVER[0] < 0x20 || MQTT_SERVER[0] > 0x7f || MQTT_SERVER_PORT < 1 ) continue;  //未配置mqtt服务器时不连接
 
-        micoWlanGetLinkStatus( &LinkStatus );
-        if ( LinkStatus.is_connected != 1 )
+        if (wifi_status != WIFI_STATE_CONNECTED)
         {
             mqtt_log("ERROR: WIFI not connection err=%d, waiting 3s for connecting and then connecting MQTT.", rc);
             mico_rtos_thread_sleep( 3 );

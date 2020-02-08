@@ -51,7 +51,7 @@ static void ap_init(void)
     micoWlanStart(&wNetConfig);
 
     os_log("ApInit ssid[%s] key[%s]", wNetConfig.wifi_ssid, wNetConfig.wifi_key);
-    wifi_status = WIFI_STATE_CONNECTING;
+    wifi_status = WIFI_STATE_CONNECTED;
 }
 #else
 void wifi_start_easylink( )
