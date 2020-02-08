@@ -113,7 +113,6 @@ static void key_timeout_handler( void* arg )
 {
 
     static uint8_t key_trigger, key_continue;
-    static uint8_t key_last;
     //按键扫描程序
     uint8_t tmp = ~(0xfe | MicoGpioInputGet( Button ));
     key_trigger = tmp & (tmp ^ key_continue);
@@ -124,9 +123,7 @@ static void key_timeout_handler( void* arg )
     {
         //any button pressed
         key_time++;
-        if ( key_time < BUTTON_LONG_PRESS_TIME )
-            key_last = key_continue;
-        else
+        if ( key_time > BUTTON_LONG_PRESS_TIME )
         {
             os_log("button long pressed:%d",key_time);
 
@@ -161,7 +158,6 @@ static void key_timeout_handler( void* arg )
         {
             MicoSystemReboot( );
         }
-        key_last = 0;
         mico_rtos_stop_timer( &user_key_timer );
     }
 }
